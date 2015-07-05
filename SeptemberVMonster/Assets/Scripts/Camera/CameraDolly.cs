@@ -19,32 +19,46 @@ public class CameraDolly : MonoBehaviour {
 
 	private Camera cam = null;
 
+	private float mouseDx = 0.0f;
+	private float mouseDy = 0.0f;
+
 	// Use this for initialization
 	void Start () {
 		cam = GetComponent<Camera> ();
+		EventCore.MouseEvents._OnMouseMove += _OnMouseMoveListener;
 	}
 
+	void _OnMouseMoveListener(EventCore.MouseEvents.MouseEventArgs mouseEventArgs) {
+		mouseDx += mouseEventArgs.dx;
+		mouseDy += mouseEventArgs.dy;
+
+
+	}
+
+	private Vector3 tempPosVec = new Vector3(0.0f, 0.0f, 0.0f);
+
 	void UpdateXPos() {
-		Vector3 tempVec = transform.position;
-		tempVec.x += (speed_leftToRight * ((followTarget.transform.position.x + pos_leftToRight) - tempVec.x))  * Time.deltaTime;
-		transform.position = tempVec;
+		//Vector3 tempVec = transform.position;
+		tempPosVec.x += (speed_leftToRight * ((followTarget.transform.position.x + pos_leftToRight) - tempPosVec.x))  * Time.deltaTime;
+		//transform.position = tempVec;
 	}
 	void UpdateYPos() {
-		Vector3 tempVec = transform.position;
-		tempVec.y += (speed_topToBottom * ((followTarget.transform.position.y + pos_topToBottom) - tempVec.y))  * Time.deltaTime;
-		transform.position = tempVec;
+		//Vector3 tempVec = transform.position;
+		tempPosVec.y += (speed_topToBottom * ((followTarget.transform.position.y + pos_topToBottom) - tempPosVec.y))  * Time.deltaTime;
+		//transform.position = tempVec;
 	}
 	void UpdateZPos() {
-		Vector3 tempVec = transform.position;
-		tempVec.z += (speed_backToFront * ((followTarget.transform.position.z + pos_backToFront) - tempVec.z))  * Time.deltaTime;
+		//Vector3 tempVec = transform.position;
+		tempPosVec.z += (speed_backToFront * ((followTarget.transform.position.z + pos_backToFront) - tempPosVec.z))  * Time.deltaTime;
 		//tempVec.z = followTarget.transform.position.z - pullBackAmount;
-		transform.position = tempVec;
+		//transform.position = tempVec;
 	}
 
 	void UpdatePosition() {
 		UpdateXPos ();
 		UpdateYPos ();
 		UpdateZPos ();
+		transform.position = tempPosVec;
 	}
 
 //	void ConstrainCameraYPosition() {
@@ -69,12 +83,14 @@ public class CameraDolly : MonoBehaviour {
 
 	private bool usingMouseLook = false;
 	void RunMouseLook() {
-		if (Input.GetMouseButton (0)) {
+		if (Input.GetMouseButton (1)) {
+
 			float h = horizontalSensitivity * Input.GetAxis ("Mouse X");
 			float v = verticalSensitivity * Input.GetAxis ("Mouse Y");
 
-			this.transform.position += this.transform.right * h;
-			this.transform.position += this.transform.up * v;
+
+
+			EventCore.MouseEvents.TriggerEvent_OnMouseMove(new EventCore.MouseEvents.MouseEventArgs(h, v));
 
 			usingMouseLook = true;
 		} else {
@@ -94,10 +110,19 @@ public class CameraDolly : MonoBehaviour {
 		}
 		if(cam == null) return;
 
+
+
 		RunMouseLook ();
-		if(!usingMouseLook) UpdatePosition ();
-		
+
+
 		RunLookAtTarget ();
+
+	
+		//if(!usingMouseLook) UpdatePosition ();
+		UpdatePosition ();
+		this.transform.position -= this.transform.right * mouseDx;
+		this.transform.position -= this.transform.up * mouseDy;
+
 
 
 		//transform.position += transform.right;
