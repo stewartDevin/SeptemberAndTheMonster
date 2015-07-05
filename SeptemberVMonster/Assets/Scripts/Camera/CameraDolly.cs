@@ -3,52 +3,88 @@ using System.Collections;
 
 public class CameraDolly : MonoBehaviour {
 
+	[Space(5)]
 	public GameObject followTarget = null;
-	public float leftToRight = 0.0f;
+	public bool lookAtTarget = false;
+	
+	[Space(10)]
+	public float pos_leftToRight = 0.0f;
+	public float speed_leftToRight = 3.0f;
+	[Space(5)]
+	public float pos_topToBottom = 0.0f;
+	public float speed_topToBottom = 3.0f;
+	[Space(5)]
+	public float pos_backToFront = 0.0f;
+	public float speed_backToFront = 3.0f;
 
-	public float pullBackAmount = 0.0f;
-
+	private Camera cam = null;
 
 	// Use this for initialization
 	void Start () {
-		
+		cam = GetComponent<Camera> ();
 	}
 
 	void UpdateXPos() {
 		Vector3 tempVec = transform.position;
-		tempVec.x += (0.2f * ((followTarget.transform.position.x + leftToRight) - tempVec.x))  * Time.deltaTime;
+		tempVec.x += (speed_leftToRight * ((followTarget.transform.position.x + pos_leftToRight) - tempVec.x))  * Time.deltaTime;
 		transform.position = tempVec;
 	}
 	void UpdateYPos() {
 		Vector3 tempVec = transform.position;
-		tempVec.y = tempVec.y + ((0.2f*30f) * (followTarget.transform.position.y - tempVec.y) * Time.deltaTime);
+		tempVec.y += (speed_topToBottom * ((followTarget.transform.position.y + pos_topToBottom) - tempVec.y))  * Time.deltaTime;
 		transform.position = tempVec;
 	}
 	void UpdateZPos() {
 		Vector3 tempVec = transform.position;
-		tempVec.z = tempVec.z + ((0.2f*30f) * (followTarget.transform.position.z - tempVec.z) * Time.deltaTime);
+		tempVec.z += (speed_backToFront * ((followTarget.transform.position.z + pos_backToFront) - tempVec.z))  * Time.deltaTime;
 		//tempVec.z = followTarget.transform.position.z - pullBackAmount;
 		transform.position = tempVec;
 	}
 
 	void UpdatePosition() {
 		UpdateXPos ();
-		//UpdateYPos ();
-		//UpdateZPos ();
+		UpdateYPos ();
+		UpdateZPos ();
 	}
 
-	void ConstrainCameraYPosition() {
+//	void ConstrainCameraYPosition() {
 //		float offset = 4.0f;
 //		if(transform.position.y >= Datacore.World.yTopBound - offset) {
 //			Vector3 tempVec = transform.position;
 //			tempVec.y = Datacore.World.yTopBound - offset;
 //			transform.position = tempVec;
 //		}
+//	}
+
+	void RunLookAtTarget () {
+		Vector3 tempPos = followTarget.transform.position;
+		tempPos.y += 1.3f;
+		if(lookAtTarget) cam.transform.LookAt (tempPos);
+	}
+
+	[Space(10)]
+	public bool useMouseLook = false;
+	public float horizontalSensitivity = 2.0f;
+	public float verticalSensitivity = 2.0f;
+
+	private bool usingMouseLook = false;
+	void RunMouseLook() {
+		if (Input.GetMouseButton (0)) {
+			float h = horizontalSensitivity * Input.GetAxis ("Mouse X");
+			float v = verticalSensitivity * Input.GetAxis ("Mouse Y");
+
+			this.transform.position += this.transform.right * h;
+			this.transform.position += this.transform.up * v;
+
+			usingMouseLook = true;
+		} else {
+			usingMouseLook = false;
+		}
 	}
 
 	// Update is called once per frame
 	void Update () {
-		//if(Datacore.GAME_STATE == Datacore.STATE.GameScreen) {
+
 		if(followTarget == null) {
 			followTarget = GameObject.FindGameObjectWithTag("cameraFollowTarget");
 		}
@@ -56,8 +92,15 @@ public class CameraDolly : MonoBehaviour {
 			Debug.Log("The follow target could not be found for the cameraDolly.");
 			return;
 		}
-		UpdatePosition ();
-		ConstrainCameraYPosition ();
-		//}
+		if(cam == null) return;
+
+		RunMouseLook ();
+		if(!usingMouseLook) UpdatePosition ();
+		
+		RunLookAtTarget ();
+
+
+		//transform.position += transform.right;
+
 	}
 }
