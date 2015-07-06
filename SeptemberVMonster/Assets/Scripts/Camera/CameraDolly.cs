@@ -3,6 +3,8 @@ using System.Collections;
 
 public class CameraDolly : MonoBehaviour {
 
+	public Camera cam = null;
+
 	[Space(5)]
 	public GameObject followTarget = null;
 	public bool lookAtTarget = false;
@@ -14,17 +16,17 @@ public class CameraDolly : MonoBehaviour {
 	public float pos_topToBottom = 0.0f;
 	public float speed_topToBottom = 3.0f;
 	[Space(5)]
-	public float pos_backToFront = 0.0f;
-	public float speed_backToFront = 3.0f;
+	public float pos_frontToBack = 0.0f;
+	public float speed_frontToBack = 3.0f;
 
-	private Camera cam = null;
+
 
 	private float mouseDx = 0.0f;
 	private float mouseDy = 0.0f;
 
 	// Use this for initialization
 	void Start () {
-		cam = GetComponent<Camera> ();
+		//cam = GetComponent<Camera> ();
 		EventCore.MouseEvents._OnMouseMove += _OnMouseMoveListener;
 	}
 
@@ -37,27 +39,40 @@ public class CameraDolly : MonoBehaviour {
 
 	private Vector3 tempPosVec = new Vector3(0.0f, 0.0f, 0.0f);
 
-	void UpdateXPos() {
-		//Vector3 tempVec = transform.position;
-		tempPosVec.x += (speed_leftToRight * ((followTarget.transform.position.x + pos_leftToRight) - tempPosVec.x))  * Time.deltaTime;
-		//transform.position = tempVec;
-	}
-	void UpdateYPos() {
-		//Vector3 tempVec = transform.position;
-		tempPosVec.y += (speed_topToBottom * ((followTarget.transform.position.y + pos_topToBottom) - tempPosVec.y))  * Time.deltaTime;
-		//transform.position = tempVec;
-	}
-	void UpdateZPos() {
-		//Vector3 tempVec = transform.position;
-		tempPosVec.z += (speed_backToFront * ((followTarget.transform.position.z + pos_backToFront) - tempPosVec.z))  * Time.deltaTime;
-		//tempVec.z = followTarget.transform.position.z - pullBackAmount;
-		//transform.position = tempVec;
-	}
+//	void UpdateXPos() {
+//		//Vector3 tempVec = transform.position;
+//		tempPosVec.x += (speed_leftToRight * ((followTarget.transform.position.x + pos_leftToRight) - tempPosVec.x))  * Time.deltaTime;
+//		//transform.position = tempVec;
+//	}
+//	void UpdateYPos() {
+//		//Vector3 tempVec = transform.position;
+//		tempPosVec.y += (speed_topToBottom * ((followTarget.transform.position.y + pos_topToBottom) - tempPosVec.y))  * Time.deltaTime;
+//		//transform.position = tempVec;
+//	}
+//	void UpdateZPos() {
+//		//Vector3 tempVec = transform.position;
+//		tempPosVec.z += (speed_backToFront * ((followTarget.transform.position.z + pos_backToFront) - tempPosVec.z))  * Time.deltaTime;
+//		//tempVec.z = followTarget.transform.position.z - pullBackAmount;
+//		//transform.position = tempVec;
+//	}
 
 	void UpdatePosition() {
-		UpdateXPos ();
-		UpdateYPos ();
-		UpdateZPos ();
+//		UpdateXPos ();
+//		UpdateYPos ();
+//		UpdateZPos ();
+
+		Vector3 targetPosition = followTarget.transform.position;
+		targetPosition += followTarget.transform.forward * pos_frontToBack;
+
+
+		//targetPosition.x += pos_leftToRight;
+		//targetPosition.y += pos_topToBottom;
+		//targetPosition.z += pos_frontToBack;
+
+		tempPosVec.x = Mathf.Lerp (transform.position.x, targetPosition.x, speed_leftToRight) ;
+		tempPosVec.y = Mathf.Lerp (transform.position.y, targetPosition.y, speed_topToBottom) ;
+		tempPosVec.z = Mathf.Lerp (transform.position.z, targetPosition.z, speed_frontToBack) ;
+
 		transform.position = tempPosVec;
 	}
 
@@ -73,7 +88,8 @@ public class CameraDolly : MonoBehaviour {
 	void RunLookAtTarget () {
 		Vector3 tempPos = followTarget.transform.position;
 		tempPos.y += 1.3f;
-		if(lookAtTarget) cam.transform.LookAt (tempPos);
+		//if(lookAtTarget) cam.transform.LookAt (tempPos);
+		if(lookAtTarget) transform.LookAt (tempPos);
 	}
 
 	[Space(10)]
@@ -87,8 +103,6 @@ public class CameraDolly : MonoBehaviour {
 
 			float h = horizontalSensitivity * Input.GetAxis ("Mouse X");
 			float v = verticalSensitivity * Input.GetAxis ("Mouse Y");
-
-
 
 			EventCore.MouseEvents.TriggerEvent_OnMouseMove(new EventCore.MouseEvents.MouseEventArgs(h, v));
 
@@ -110,22 +124,15 @@ public class CameraDolly : MonoBehaviour {
 		}
 		if(cam == null) return;
 
-
-
 		RunMouseLook ();
-
 
 		RunLookAtTarget ();
 
-	
 		//if(!usingMouseLook) UpdatePosition ();
 		UpdatePosition ();
 		this.transform.position -= this.transform.right * mouseDx;
 		this.transform.position -= this.transform.up * mouseDy;
 
-
-
 		//transform.position += transform.right;
-
 	}
 }
